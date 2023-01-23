@@ -1823,7 +1823,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			super(descriptor, beanName);
 		}
 
-		@Override
+
 		@Nullable
 		public Object get() throws BeansException {
 			return getValue();

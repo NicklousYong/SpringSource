@@ -37,12 +37,15 @@ import org.springframework.util.StringUtils;
  * @see org.springframework.beans.factory.support.ChildBeanDefinition
  * @since 1.0.2
  */
+
 public class BeanDefinitionHolder implements BeanMetadataElement {
-
+	//持有BeanDefinition
 	private final BeanDefinition beanDefinition;
-
+	//BeanDefinition的名称
 	private final String beanName;
 	//别名
+	//BeanDefinition的别名
+	//@Nullable说明该参数可以为空
 	@Nullable
 	private final String[] aliases;
 
@@ -53,6 +56,7 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 	 * @param beanDefinition the BeanDefinition to wrap
 	 * @param beanName       the name of the bean, as specified for the bean definition
 	 */
+	//根据Bean的名称和BeanDefinition初始化BeanDefinitionHilder
 	public BeanDefinitionHolder(BeanDefinition beanDefinition, String beanName) {
 		this(beanDefinition, beanName, null);
 	}
@@ -64,6 +68,7 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 	 * @param beanName       the name of the bean, as specified for the bean definition
 	 * @param aliases        alias names for the bean, or {@code null} if none
 	 */
+	//根据Bean的名称和BeanDefinition，别名alies初始化BeanDefinitionHolder
 	public BeanDefinitionHolder(BeanDefinition beanDefinition, String beanName, @Nullable String[] aliases) {
 		Assert.notNull(beanDefinition, "BeanDefinition must not be null");
 		Assert.notNull(beanName, "Bean name must not be null");
@@ -80,6 +85,8 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 	 *
 	 * @param beanDefinitionHolder the BeanDefinitionHolder to copy
 	 */
+	//根据指定的BeanDefinitionHolder 复制到一个新的BeanDefinitionHolder
+	//此处不是深克隆
 	public BeanDefinitionHolder(BeanDefinitionHolder beanDefinitionHolder) {
 		Assert.notNull(beanDefinitionHolder, "BeanDefinitionHolder must not be null");
 		this.beanDefinition = beanDefinitionHolder.getBeanDefinition();
@@ -127,6 +134,7 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 	 * Determine whether the given candidate name matches the bean name
 	 * or the aliases stored in this bean definition.
 	 */
+	//判断指定的名称与beanName或者别名身份匹配
 	public boolean matchesName(@Nullable String candidateName) {
 		return (candidateName != null && (candidateName.equals(this.beanName) ||
 				candidateName.equals(BeanFactoryUtils.transformedBeanName(this.beanName)) ||
@@ -140,6 +148,7 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 	 * @see #getBeanName()
 	 * @see #getAliases()
 	 */
+	//返回一个描述包括bean的名称和所有的别名
 	public String getShortDescription() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Bean definition with name '").append(this.beanName).append("'");
@@ -156,6 +165,7 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 	 * @see #getShortDescription()
 	 * @see #getBeanDefinition()
 	 */
+	//返回一个长描述包括名称，别名已经beanDefinition的内容
 	public String getLongDescription() {
 		StringBuilder sb = new StringBuilder(getShortDescription());
 		sb.append(": ").append(this.beanDefinition);

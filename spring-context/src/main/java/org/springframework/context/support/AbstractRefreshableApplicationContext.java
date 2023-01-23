@@ -102,7 +102,6 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * Set whether it should be allowed to override bean definitions by registering
 	 * a different definition with the same name, automatically replacing the former.
 	 * If not, an exception will be thrown. Default is "true".
-	 *
 	 * @see org.springframework.beans.factory.support.DefaultListableBeanFactory#setAllowBeanDefinitionOverriding
 	 */
 	public void setAllowBeanDefinitionOverriding(boolean allowBeanDefinitionOverriding) {
@@ -140,13 +139,17 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 		try {
 			/**
 			 * 为我们的Spring应用上下文对象创建我们的beanFactory
+			 * beanFactory默认的是什么样子？可以设置多少种 ？？？
 			 */
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
 			//为容器设置一个序列化ID
 			beanFactory.setSerializationId(getId());
 			customizeBeanFactory(beanFactory);
-			//加载我们的bean定义
+			//加载我们的bean定义 传入刚刚创建好的beanFactory
+			//这里的 BeanFactory 是一个 DefaultListableBeanFactory
+			//⭐️
 			loadBeanDefinitions(beanFactory);
+			//这个 beanFactoryMonitor 是干啥用的 ？？？
 			synchronized (this.beanFactoryMonitor) {
 				this.beanFactory = beanFactory;
 			}

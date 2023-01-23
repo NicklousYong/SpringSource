@@ -95,6 +95,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		this.readerContext = readerContext;
 		logger.debug("Loading bean definitions");
 		Element root = doc.getDocumentElement();
+		//⭐️
 		doRegisterBeanDefinitions(root);
 	}
 
@@ -119,17 +120,20 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	/**
 	 * Register each bean definition within the given root {@code <beans/>} element.
 	 */
+	//
 	protected void doRegisterBeanDefinitions(Element root) {
 		// Any nested <beans> elements will cause recursion in this method. In
-		// order to propagate and preserve <beans> default-* attributes correctly,
+		// order to propagate and preserve <beans> default-* axttributes correctly,
 		// keep track of the current (parent) delegate, which may be null. Create
 		// the new (child) delegate with a reference to the parent for fallback purposes,
 		// then ultimately reset this.delegate back to its original (parent) reference.
 		// this behavior emulates a stack of delegates without actually necessitating one.
+
 		BeanDefinitionParserDelegate parent = this.delegate;
 		this.delegate = createDelegate(getReaderContext(), root, parent);
 
 		if (this.delegate.isDefaultNamespace(root)) {
+			//处理profile属性
 			String profileSpec = root.getAttribute(PROFILE_ATTRIBUTE);
 			if (StringUtils.hasText(profileSpec)) {
 				String[] specifiedProfiles = StringUtils.tokenizeToStringArray(
@@ -143,9 +147,11 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 				}
 			}
 		}
-
+		//解析前处理，空方法，留给子类实现
 		preProcessXml(root);
+		//解析
 		parseBeanDefinitions(root, this.delegate);  // 解析Bean定义
+		//解析前的处理方法，留给子类实现
 		postProcessXml(root);
 
 		this.delegate = parent;
@@ -172,14 +178,17 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 				Node node = nl.item(i);
 				if (node instanceof Element) {
 					Element ele = (Element) node;
-					if (delegate.isDefaultNamespace(ele)) {//判断是否使用命名空间
+					if (delegate.isDefaultNamespace(ele)) {//判断是否使用默认命名空间
+						//是默认命名空间
 						parseDefaultElement(ele, delegate);
 					} else {
+						//非默认命名空间
 						delegate.parseCustomElement(ele);
 					}
 				}
 			}
 		} else {
+			//根节点为空，也会调用parseCustomElement
 			delegate.parseCustomElement(root);
 		}
 	}

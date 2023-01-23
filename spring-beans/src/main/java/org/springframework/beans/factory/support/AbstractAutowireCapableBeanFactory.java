@@ -496,6 +496,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (resolvedClass != null && !mbd.hasBeanClass() && mbd.getBeanClassName() != null) {
 			//目测走到这一步，获取的Bean是通过doResolveBeanClass来得到的
 			mbdToUse = new RootBeanDefinition(mbd);
+			// ~~~ 到这里我觉得有必要熟悉一下BeanDefinition的代码
 			mbdToUse.setBeanClass(resolvedClass);
 		}
 		//校验和准备Bean中的方法覆盖
@@ -556,7 +557,6 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	/**
 	 * 真的创建bean的逻辑,该方法是最复杂的包含了调用构造函数,给bean的属性赋值
 	 * 调用bean的初始化操作以及 生成代理对象 都是在这里
-	 *
 	 * @param beanName bean的名称
 	 * @param mbd      bean的定义
 	 * @param args     传入的参数
@@ -578,7 +578,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 		if (instanceWrapper == null) {
 			//创建bean实例化 使用合适的实例化策略来创建新的实例：工厂方法、构造函数自动注入、简单初始化 该方法很复杂也很重要
-			//
+			//⭐️
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
 		//从beanWrapper中获取我们的早期对象
@@ -633,6 +633,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		try {
 			//属性赋值 给我们的属性进行赋值(调用set方法进行赋值)
 			//将Bean对象实例封装，并且将Bean定义中配置的属性赋值给对象
+			//⭐️
 			populateBean(beanName, mbd, instanceWrapper);
 			//进行对象初始化操作(在这里可能生成代理对象)
 			//初始化Bean对象
@@ -1202,7 +1203,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Class<?> beanClass = resolveBeanClass(mbd, beanName);
 		/*
 		 * 检测类的访问权限。默认情况下，对于非 public 的类，是允许访问的。
-		 * if(beanClass 不为null      并且
+		 * if(beanClass 不为null    并且
 		 *   访问修饰符如果不是public 并且
 		 *   Bean定义的nonPublicAccessAllowed为false) 题外话：nonPublicAccessAllowed为true的情况下（默认值），即使你不是public的也ok
 		 *    这里会抛出异常
@@ -1232,7 +1233,6 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			//调用工厂方法进行实例化
 			return instantiateUsingFactoryMethod(beanName, mbd, args);
 		}
-
 		/**
 		 * 当多次构建同一个 bean 时，可以使用此处的快捷路径，即无需再次推断应该使用哪种方式构造实例，
 		 * 以提高效率。比如在多次构建同一个 prototype 类型的 bean 时，就可以走此处的捷径。
@@ -1571,6 +1571,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		 * 则是完成这一步骤的
 		 */
 		if (pvs != null) {
+			//⭐️
 			applyPropertyValues(beanName, mbd, bw, pvs);
 		}
 	}
@@ -1880,6 +1881,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				 *   转换属性值，例如将引用转换为IoC容器中实例化对象引用 ！！！！！ 对属性值的解析！
 				 */
 				//转换属性值，例如将引用转换为IOC容器中实例化的对象引用
+				//⭐️
 				Object resolvedValue = valueResolver.resolveValueIfNecessary(pv, originalValue);
 				//转换后的属性值
 				Object convertedValue = resolvedValue;
@@ -1889,7 +1891,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				// 使用用户自定义的类型转换器转换属性值
 				if (convertible) {
 					// 对属性值的类型进行转换，比如将 String 类型的属性值 "123" 转为 Integer 类型的 123
-					//使用用户自定义的类型转换器转换属性值
+					// 使用用户自定义的类型转换器转换属性值
 					convertedValue = convertForProperty(resolvedValue, propertyName, bw, converter);
 				}
 				// 存储转换后的属性值，避免每次属性注入时的转换工作
@@ -1924,6 +1926,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Set our (possibly massaged) deep copy.
 		try {
 			// 进行属性依赖注入，依赖注入的真真正正实现依赖的注入方法在此！！！ 这这里就会调用我们的构造方法
+			//⭐️
 			bw.setPropertyValues(new MutablePropertyValues(deepCopy));
 		} catch (BeansException ex) {
 			throw new BeanCreationException(

@@ -255,7 +255,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	private MutablePropertyValues propertyValues;
 
 	/**
-	 * 重写属性的集合 用户保存look-method 和replace-method
+	 * 重写属性的集合<SynchronizedSet> 用户保存look-method 和replace-method
 	 */
 	@Nullable
 	private MethodOverrides methodOverrides;

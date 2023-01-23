@@ -89,13 +89,15 @@ public class DelegatingEntityResolver implements EntityResolver {
 			throws SAXException, IOException {
 
 		if (systemId != null) {
+			// dtd 和 xsd https://blog.csdn.net/xmlidea/article/details/128108464
 			if (systemId.endsWith(DTD_SUFFIX)) {
+				//dtd的解析方法
 				return this.dtdResolver.resolveEntity(publicId, systemId);
 			} else if (systemId.endsWith(XSD_SUFFIX)) {
+				//xsd的解析方法
 				return this.schemaResolver.resolveEntity(publicId, systemId);
 			}
 		}
-
 		// Fall back to the parser's default behavior.
 		return null;
 	}

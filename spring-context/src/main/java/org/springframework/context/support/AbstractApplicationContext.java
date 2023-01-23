@@ -262,7 +262,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	/**
 	 * Create a new AbstractApplicationContext with no parent.
 	 */
-	public AbstractApplicationContext() {
+	public 	AbstractApplicationContext() {
 		this.resourcePatternResolver = getResourcePatternResolver();
 	}
 
@@ -574,6 +574,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			prepareRefresh();
 
 			//2:获取告诉子类初始化Bean工厂  不同工厂不同实现
+			//默认创建DefaultListableBeanFactory
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			//3:对bean工厂进行填充属性
@@ -633,7 +634,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * active flag as well as performing any initialization of property sources.
 	 */
 	protected void prepareRefresh() {
-		// Switch to active.
+		//获取当前时间
 		this.startupDate = System.currentTimeMillis();
 		this.closed.set(false);
 		this.active.set(true);
@@ -641,10 +642,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		if (logger.isInfoEnabled()) {
 			logger.info("Refreshing " + this);
 		}
-
 		/**
-		 *相传该方法在网上很多人说该方法没有用,因为这个方法是留个子类实现的,由于是对spring源码的核心
-		 * 设计理念没有弄清楚,正式由于spring提供了大量的可扩展的接口提供给我们自己来实现
+		 * 相传该方法在网上很多人说该方法没有用,因为这个方法是留给子类实现的,由于是对spring源码的核心
+		 * 设计理念没有弄清楚,正是由于spring提供了大量的可扩展的接口提供给我们自己来实现
 		 * 比如我们自己写一个类重写了initPropertySources方法，在该方法中设置了一个环境变量的值为A
 		 * 启动的时候，我的环境变量中没有该值就会启动抛出异常
 		 */
@@ -654,7 +654,6 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		 * 用来校验我们容器启动必须依赖的环境变量的值
 		 */
 		getEnvironment().validateRequiredProperties();
-
 		/**
 		 * 创建一个早期事件监听器对象
 		 */
@@ -665,7 +664,6 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			this.applicationListeners.clear();
 			this.applicationListeners.addAll(this.earlyApplicationListeners);
 		}
-
 		/**
 		 * 创建一个容器用于保存早期待发布的事件集合
 		 * 什么是早期事件?
@@ -694,7 +692,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
 		/**
 		 *  xml加载spring会在这里加载beanDefinition
-		 *  javaconfig只是刷新了beanFactory
+		 *  javaConfig只是刷新了beanFactory
 		 */
 		refreshBeanFactory();
 		//返回我们的bean工厂
@@ -1401,6 +1399,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	@Nullable
 	protected BeanFactory getInternalParentBeanFactory() {
+		//如果父类容器是ConfigurableApplicationContext，则返回父类的getBeanFactory，否则返回getParent
 		return (getParent() instanceof ConfigurableApplicationContext ?
 				((ConfigurableApplicationContext) getParent()).getBeanFactory() : getParent());
 	}

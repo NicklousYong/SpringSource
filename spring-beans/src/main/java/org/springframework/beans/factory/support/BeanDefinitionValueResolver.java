@@ -98,30 +98,36 @@ class BeanDefinitionValueResolver {
 	 * <li>A ManagedMap. In this case the value may be a RuntimeBeanReference
 	 * or Collection that will need to be resolved.
 	 * <li>An ordinary object or {@code null}, in which case it's left alone.
-	 *
 	 * @param argName the name of the argument that the value is defined for
 	 * @param value   the value object to resolve
 	 * @return the resolved object
 	 */
 	@Nullable
+	//解析属性依赖注入规则
 	public Object resolveValueIfNecessary(Object argName, @Nullable Object value) {
 		//判断解析的值是不是 运行时bean的引用
+		//对引用类型的属性进行解析
 		if (value instanceof RuntimeBeanReference) {
+			//查资料得到：RuntimeBeanReference这个类，主要用于封装xml中配置的类，将其封装成为容器中真正存在的Bean
 			RuntimeBeanReference ref = (RuntimeBeanReference) value;
+			//调用引用类型属性的解析方法
 			return resolveReference(argName, ref);
 		}
 		//若value 是RuntimeBeanNameReference
+		//对引用容器中另一个Bean名称的属性进行解析
 		else if (value instanceof RuntimeBeanNameReference) {
 			String refName = ((RuntimeBeanNameReference) value).getBeanName();
 			refName = String.valueOf(doEvaluate(refName));
+			//从容器中获取指定名称的Bean
 			if (!this.beanFactory.containsBean(refName)) {
 				throw new BeanDefinitionStoreException(
 						"Invalid bean name '" + refName + "' in bean reference for " + argName);
 			}
-			return refName;
+			return refName;//~~~这里为什么是返回一个String?RuntimeBeanNameReference是干啥的？？？
 		}
 		//是BeanDefinitionHolder
-		else if (value instanceof BeanDefinitionHolder) {
+		//对Bean类型进行解析，主要是指Bean中的内部类
+		else if (value instanceof BeanDefinitionHolder) {//这个类也不知道干啥的
 			// Resolve BeanDefinitionHolder: contains BeanDefinition with name and aliases.
 			BeanDefinitionHolder bdHolder = (BeanDefinitionHolder) value;
 			return resolveInnerBean(argName, bdHolder.getBeanName(), bdHolder.getBeanDefinition());
@@ -135,14 +141,18 @@ class BeanDefinitionValueResolver {
 			return resolveInnerBean(argName, innerBeanName, bd);
 		}
 		//处理array的
+		//对数组类型的属性进行解析
 		else if (value instanceof ManagedArray) {
 			// May need to resolve contained runtime references.
 			ManagedArray array = (ManagedArray) value;
+			//获取数组的类型
 			Class<?> elementType = array.resolvedElementType;
 			if (elementType == null) {
+				//获取数组元素的类型
 				String elementTypeName = array.getElementTypeName();
 				if (StringUtils.hasText(elementTypeName)) {
 					try {
+						//使用反射机制创建指定类型的对象
 						elementType = ClassUtils.forName(elementTypeName, this.beanFactory.getBeanClassLoader());
 						array.resolvedElementType = elementType;
 					} catch (Throwable ex) {
@@ -151,22 +161,30 @@ class BeanDefinitionValueResolver {
 								this.beanDefinition.getResourceDescription(), this.beanName,
 								"Error resolving array type for " + argName, ex);
 					}
+					//没有获取到数组的类型，也没有获取到数组元素的类型
+					//则直接设置数组类型为Object
 				} else {
 					elementType = Object.class;
 				}
 			}
+			//创建指定类型的数组
 			return resolveManagedArray(argName, (List<?>) value, elementType);
 		} else if (value instanceof ManagedList) {
 			// May need to resolve contained runtime references.
+			//解析list类型的属性值
 			return resolveManagedList(argName, (List<?>) value);
-		} else if (value instanceof ManagedSet) {
+		} else if (value instanceof ManagedSet) {//~~~这是 ManagedSet 个啥？？？
 			// May need to resolve contained runtime references.
+			//解析set类型的属性值
 			return resolveManagedSet(argName, (Set<?>) value);
 		} else if (value instanceof ManagedMap) {
 			// May need to resolve contained runtime references.
+			////解析map类型的属性值
 			return resolveManagedMap(argName, (Map<?, ?>) value);
-		} else if (value instanceof ManagedProperties) {
+		}	//解析props类型的属性值，prop其实就是key和value均为字符串的Map
+		else if (value instanceof ManagedProperties) {
 			Properties original = (Properties) value;
+			//创建一个副本，作为解析后的返回值
 			Properties copy = new Properties();
 			original.forEach((propKey, propValue) -> {
 				if (propKey instanceof TypedStringValue) {
@@ -183,15 +201,19 @@ class BeanDefinitionValueResolver {
 				copy.put(propKey, propValue);
 			});
 			return copy;
-		} else if (value instanceof TypedStringValue) {
+		}//解析字符串类型的属性值
+		else if (value instanceof TypedStringValue) {
 			// Convert value to target type here.
 			TypedStringValue typedStringValue = (TypedStringValue) value;
 			Object valueObject = evaluate(typedStringValue);
 			try {
+				//获取属性的目标类型
 				Class<?> resolvedTargetType = resolveTargetType(typedStringValue);
 				if (resolvedTargetType != null) {
+					//对目标类型的属性进行解析，递归调用
 					return this.typeConverter.convertIfNecessary(valueObject, resolvedTargetType);
 				} else {
+					//没有获取到属性的目标对象，则按照Object类型返回
 					return valueObject;
 				}
 			} catch (Throwable ex) {
@@ -280,14 +302,17 @@ class BeanDefinitionValueResolver {
 	/**
 	 * Resolve a reference to another bean in the factory.
 	 */
+	//解析引用类型的属性值
 	@Nullable
 	private Object resolveReference(Object argName, RuntimeBeanReference ref) {
 		try {
 			Object bean;
 			//引用bean的name
+			//获取Bean的名称
 			String refName = ref.getBeanName();
 			//调用值解析器来解析bean的名称
 			refName = String.valueOf(doEvaluate(refName));
+			//如果引用对象在父类容器中，则从父容器中获取指定的引用对象
 			if (ref.isToParent()) {
 				if (this.beanFactory.getParentBeanFactory() == null) {
 					throw new BeanCreationException(
@@ -296,13 +321,17 @@ class BeanDefinitionValueResolver {
 									"' in parent factory: no parent factory available");
 				}
 				bean = this.beanFactory.getParentBeanFactory().getBean(refName);
+				//当前的容器中获取指定的引用Bean对象，如果指定的对象没有实例化
+				//则会递归触发引用Bean的初始化和依赖注入
 			} else {
-				//解析来的refName 去容器中获取bean(getBean->doGetBean。。。。。。。。。。。)
+				//解析来的 refName 去容器中获取bean(getBean -> doGetBean。。。。。。。。。。。)
+				//当前实例化对象依赖的引用对象
+				//这里出现递归调用，出现循环
 				bean = this.beanFactory.getBean(refName);
 				//保存到缓存中
 				this.beanFactory.registerDependentBean(refName, this.beanName);
 			}
-			if (bean instanceof NullBean) {
+			if (bean instanceof NullBean) {//~~~这个 NullBean 类的存在是我没想到的
 				bean = null;
 			}
 			return bean;
@@ -381,9 +410,12 @@ class BeanDefinitionValueResolver {
 	/**
 	 * For each element in the managed array, resolve reference if necessary.
 	 */
+	//解析array类型的属性值
 	private Object resolveManagedArray(Object argName, List<?> ml, Class<?> elementType) {
+		//创建提个指定类型的数组，用于存放和返回解析后的数组
 		Object resolved = Array.newInstance(elementType, ml.size());
 		for (int i = 0; i < ml.size(); i++) {
+			//用于解析array的每一个元素，并将解析后的值设置到resolved数组中，索引为i
 			Array.set(resolved, i, resolveValueIfNecessary(new KeyedArgName(argName, i), ml.get(i)));
 		}
 		return resolved;
