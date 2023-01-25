@@ -333,7 +333,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 		Set<EncodedResource> currentResources = this.resourcesCurrentlyBeingLoaded.get();
 		if (currentResources == null) {
 			currentResources = new HashSet<>(4);
-			//本身是调用Thraed的set方法，把空的hashSet放进去。我认为这里是为了防止空指针的同事，不妨害之前的数据
+			//本身是调用Thraed的set方法，把空的hashSet放进去。我认为这里是为了防止空指针的同时，不妨害之前的数据
 			this.resourcesCurrentlyBeingLoaded.set(currentResources);
 		}
 		//如果不能添加，则报错，循环加载
@@ -411,6 +411,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 		try {//输入流变为Dom对象
 			//获得dom对象
 			Document doc = doLoadDocument(inputSource, resource);
+			//按照Spring的Bean语义将Bean配置信息解析并转换为容器内部的数据结构
 			return registerBeanDefinitions(doc, resource);
 		} catch (BeanDefinitionStoreException ex) {
 			throw ex;
@@ -520,12 +521,17 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @see #setDocumentReaderClass
 	 * @see BeanDefinitionDocumentReader#registerBeanDefinitions
 	 */
+	//按照Spring的Bean语义将Bean配置信息解析并转换为容器内部的数据结构
 	public int registerBeanDefinitions(Document doc, Resource resource) throws BeanDefinitionStoreException {
+		//得到BeanDefinitionDocumentReader来对XML格式的BeanDefinition进行解析
 		BeanDefinitionDocumentReader documentReader = createBeanDefinitionDocumentReader();//这是一个什么类啊
 		//获取 Spring 容器中已经注册的 BeanDefinition 的数量
 		int countBefore = getRegistry().getBeanDefinitionCount();
 		//注册Bean定义
+		//解析过程的入口，这里使用了委派模式，BeanDefinitionReader只是一个接口
+		//具体的解析过程由实现类DefaultBeanDefinitionDocumentReader完成
 		documentReader.registerBeanDefinitions(doc, createReaderContext(resource));
+		//统计解析Bean的数量
 		return getRegistry().getBeanDefinitionCount() - countBefore;
 	}
 

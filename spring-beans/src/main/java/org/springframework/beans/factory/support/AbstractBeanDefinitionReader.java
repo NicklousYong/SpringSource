@@ -222,13 +222,14 @@ public abstract class AbstractBeanDefinitionReader implements EnvironmentCapable
 			throw new BeanDefinitionStoreException(
 					"Cannot import bean definitions from location [" + location + "]: no ResourceLoader available");
 		}
-	if (resourceLoader instanceof ResourcePatternResolver) {
+		if (resourceLoader instanceof ResourcePatternResolver) {
 			try {
 				//将指定位置的Bean配置信息解析为Spring IOC容器封装的资源
-				//加载多个指定位置的Bean配置信息
+				//加载多个指定位置的Bean配置信息 在 DefaultResourceLoader 中
 				//⭐️
-				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);//这里只是获取加载的资源
+				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);//根据各种路径格式(URL)加载资源
 				//委派调用子类XmlBeanDefinitionReader的方法，实现加载功能
+				//读取文件内容
 				int loadCount = loadBeanDefinitions(resources);
 				if (actualResources != null) {
 					for (Resource resource : resources) {
