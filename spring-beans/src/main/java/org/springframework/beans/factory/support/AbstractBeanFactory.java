@@ -247,11 +247,13 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	}
 
 	@Override
+	//获取指定名称和类型的Bean
 	public <T> T getBean(String name, @Nullable Class<T> requiredType) throws BeansException {
 		return doGetBean(name, requiredType, null, false);
 	}
 
 	@Override
+	//获取指定名称和参数的bean
 	public Object getBean(String name, Object... args) throws BeansException {
 		return doGetBean(name, null, args, false);
 	}
@@ -266,6 +268,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * @return an instance of the bean
 	 * @throws BeansException if the bean could not be created
 	 */
+	//获取IOC容器中指定名称、类型和参数的Bean
 	public <T> T getBean(String name, @Nullable Class<T> requiredType, @Nullable Object... args)
 			throws BeansException {
 		//这里真正想容器中获取被管理的Bean
@@ -284,16 +287,21 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * @throws BeansException 如何bean不能被创建 那么就回抛出异常
 	 */
 	@SuppressWarnings("unchecked")
+	//真正实现向IOC容器获取Bean的功能，也是触发依赖注入的地方
 	protected <T> T doGetBean(final String name, @Nullable final Class<T> requiredType,
 							  @Nullable final Object[] args, boolean typeCheckOnly) throws BeansException {
 
 		/**
 		 * 在这里 传入进来的name 可能是 别名, 也有可能是工厂bean的name,所以在这里需要转换
 		 */
+		//根据指定的名称获取被管理的Bean的名称，剥离指定名称中对容器的相关依赖
+		//如果指定的是别名，将别名转换为规范的Bean名称
 		final String beanName = transformedBeanName(name);//~~~这里的转换前后有什么区别？
 		Object bean;
 
 		//尝试去缓存中获取单例的对象，对于单例模式的Bean，容器中只需要创建一次，不需要重复创建
+		//先从缓存中读取是否已经有被创建过的单例模式的Bean
+		//对于单例模式的Bean,整个IOC容器只创建一次，不需要重复创建
 		Object sharedInstance = getSingleton(beanName);//~~~这里涉及DefaultSingletonBeanRegistry的具体设计内容
 		//IOC容器中创建单例模式的Bean实例对象
 		//   sharedInstance != null 说明该Bean在单例模式中找到了
@@ -315,6 +323,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			 * 即可。毕竟 FactoryBean 的实现类本身也是一种 bean，只不过具有一点特殊的功能而已。
 			 */
 			//   这里对于FactoryBean做了特殊的处理
+			//获取给定Bean的实例对象，主要完成FactoryBean的相关处理
+			//注意：BeanFactory是管理Bean的工厂，FactoryBean是创建对象工厂的Bean,两者之间有区别
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);//~~~ 不懂
 		} else {
 			//如果缓存中没有正在创建的单例模式的Bean，
@@ -333,8 +343,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			 * 比如我们的Controller中注入Service的时候，发现我们依赖的是一个引用对象，那么他就会调用getBean去把service找出来
 			 * 但是当前所在的容器是web子容器，那么就会在这里的 先去父容器找
 			 */
+			//检查IOC容器中是否存在指定名称的BeanDefinition进行检查 ，首先检查是否能在当前的beanFactory中获取锁需要的Bean,如果
+			//不能则委托当前容器的福容器去查找，如果还是找不到则沿着容器的继承体系继续向父容器查找
 			BeanFactory parentBeanFactory = getParentBeanFactory();
 			//若存在父工厂,且当前的bean工厂不存在当前的bean定义,那么bean定义是存在于父beanFacotry中
+			//当前父容器存在，且当前容器中不存在指定名称的Bean
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				//获取bean的原始名称
 				String nameToLookup = originalBeanName(name);
@@ -413,7 +426,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					}
 				}
 
-				//创建单例bean
+				//创建单例模式的bean的实例对象
 				//这里不用检查吗？还是说到了这一步，一定是没有创建？？？
 				if (mbd.isSingleton()) {
 					//把beanName 和一个singletonFactory 并且传入一个回调对象用于回调
@@ -449,7 +462,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					bean = getObjectForBeanInstance(prototypeInstance, name, beanName, mbd);
 				}
 				//要创建的Bean既不是单例模式的，也不是原型模式的，则根据Bean定义资源中
-				//配置的生命周期，选择实例化Bean的合适方法，这种方式在Web应用程序中
+				//配置的生命周期范围，选择实例化Bean的合适方法，这种方式在Web应用程序中
 				//比较常用,如Request、session、application等生命周期
 				else {
 					String scopeName = mbd.getScope();

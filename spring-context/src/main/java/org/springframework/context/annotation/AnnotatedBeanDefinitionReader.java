@@ -150,6 +150,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * @param annotatedClass the class of the bean
 	 */
 	public void registerBean(Class<?> annotatedClass) {
+		//⭐️
 		doRegisterBean(annotatedClass, null, null, null);
 	}
 
@@ -226,24 +227,32 @@ public class AnnotatedBeanDefinitionReader {
 	<T> void doRegisterBean(Class<T> annotatedClass, @Nullable Supplier<T> instanceSupplier, @Nullable String name,
 							@Nullable Class<? extends Annotation>[] qualifiers, BeanDefinitionCustomizer... definitionCustomizers) {
 		//存储@Configuration注解注释的类
+		//根据指定的注解Bean定义类，创建Spring容器中对注解Bean封装的数据结构
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(annotatedClass);
 		//判断是否需要跳过注解，spring中有一个@Condition注解，当不满足条件，这个bean就不会被解析
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
-
 		abd.setInstanceSupplier(instanceSupplier);
 		//解析bean的作用域，如果没有设置的话，默认为单例
+		//若为@Scope("prototype"),则为原型模型
+		//若@Scope("singleton"),则Bean为单例模型
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
+		//为Bean设置作用域
 		abd.setScope(scopeMetadata.getScopeName());
 		//获得beanName
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
-		//解析通用注解，填充到AnnotatedGenericBeanDefinition，解析的注解为Lazy，Primary，DependsOn，Role，Description
+		//解析通用注解，填充到 AnnotatedGenericBeanDefinition，解析的注解为Lazy，Primary，DependsOn，Role，Description
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
+		//如果在向容器注册注解Bean定义时，使用了额外的限定符注解，则解析限定符注解
+		//主要配置autowiring自动依赖注入装配的限定条件，即@Qualifier注解
+		//Spring自动依赖注入默认按类型装配，如果使用autowiring则按名称装配
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
 				if (Primary.class == qualifier) {
 					abd.setPrimary(true);
+					//如果使用了除@Primary和@Lazy以外的其他注解，则为该Bean添加一个autowiring自动依赖注入装配限定符，该Bean在进autowiring
+					//自动依赖注入装配时，根据名称装配限定符指定的Bean
 				} else if (Lazy.class == qualifier) {
 					abd.setLazyInit(true);
 				} else {
@@ -254,14 +263,15 @@ public class AnnotatedBeanDefinitionReader {
 		for (BeanDefinitionCustomizer customizer : definitionCustomizers) {
 			customizer.customize(abd);
 		}
-
+		//创建一个指定Bean名称的Bean定义对象，封装注解Bean定义类数据
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
+		//根据注解Bean定义类中配置的作用域，创建相应的代理对象
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
-
 		//注册，最终会调用DefaultListableBeanFactory中的registerBeanDefinition方法去注册，
 		//DefaultListableBeanFactory维护着一系列信息，比如beanDefinitionNames，beanDefinitionMap
 		//beanDefinitionNames是一个List<String>,用来保存beanName
 		//beanDefinitionMap是一个Map,用来保存beanName和beanDefinition
+		//向IOC容器注册注解Bean类定义对象
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
 	}
 

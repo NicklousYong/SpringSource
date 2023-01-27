@@ -104,6 +104,7 @@ class BeanDefinitionValueResolver {
 	 */
 	@Nullable
 	//解析属性依赖注入规则
+	//解析属性值，对注入类型进行转换
 	public Object resolveValueIfNecessary(Object argName, @Nullable Object value) {
 		//判断解析的值是不是 运行时bean的引用
 		//对引用类型的属性进行解析

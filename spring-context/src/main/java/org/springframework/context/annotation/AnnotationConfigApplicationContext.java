@@ -55,11 +55,13 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	/**
 	 * 注解的bean定义读取器
 	 */
+	//保存一个读取注解的Bean定义读取器，并将其设置到容器中
 	private final AnnotatedBeanDefinitionReader reader;
 
 	/**
 	 * 类路径下的bean定义扫描器
 	 */
+	//保存一个扫描指定类路径中注解Bean定义的扫描器，并将其设置到容器中
 	private final ClassPathBeanDefinitionScanner scanner;
 
 
@@ -67,6 +69,8 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * Create a new AnnotationConfigApplicationContext that needs to be populated
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
 	 */
+	//默认构造函数，初始化一个空容器，容器不包含任何Bean信息，需要稍后通过调用其register()
+	//方法注册配置类，并调用refresh方法刷新容器，触发容器对注解Bean的载入，解析和注册
 	public AnnotationConfigApplicationContext() {
 		/**
 		 * 创建一个读取注解的Bean定义读取器
@@ -107,6 +111,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * @param annotatedClasses one or more annotated classes,
 	 *                         e.g. {@link Configuration @Configuration} classes
 	 */
+	//最常用的构造函数，通过将涉及的配置类传递给该构造函数，实现将相应配置类中的Bean自动注册到容器中
 	public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
 		//调用构造函数
 		this();
@@ -123,9 +128,9 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * @param basePackages the packages to check for annotated classes
 	 */
 	public AnnotationConfigApplicationContext(String... basePackages) {
-		this();
-		scan(basePackages);
-		refresh();
+		this();//调用空构造器
+		scan(basePackages);//扫描指定包路径及其子包下的注解类
+		refresh();//IOC 容器的刷新 这一步和XML调用的是同一个方法
 	}
 
 
@@ -150,6 +155,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * @see AnnotatedBeanDefinitionReader#setBeanNameGenerator
 	 * @see ClassPathBeanDefinitionScanner#setBeanNameGenerator
 	 */
+	//为容器的注解Bean读取器和注解Bean扫描器设置Bean名称产生器
 	public void setBeanNameGenerator(BeanNameGenerator beanNameGenerator) {
 		this.reader.setBeanNameGenerator(beanNameGenerator);
 		this.scanner.setBeanNameGenerator(beanNameGenerator);
@@ -163,6 +169,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * <p>Any call to this method must occur prior to calls to {@link #register(Class...)}
 	 * and/or {@link #scan(String...)}.
 	 */
+	//为容器的注解Bean读取器和注解Bean扫描器设置作用范围元信息解析器
 	public void setScopeMetadataResolver(ScopeMetadataResolver scopeMetadataResolver) {
 		this.reader.setScopeMetadataResolver(scopeMetadataResolver);
 		this.scanner.setScopeMetadataResolver(scopeMetadataResolver);
@@ -183,6 +190,8 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * @see #scan(String...)
 	 * @see #refresh()
 	 */
+	//为容器注册一个要被处理的注解Bean,鑫注册的Bean，必须手动调用容器的
+	//refresh方法刷新容器，触发容器对新注册的Bean的处理
 	public void register(Class<?>... annotatedClasses) {
 		Assert.notEmpty(annotatedClasses, "At least one annotated class must be specified");
 		this.reader.register(annotatedClasses);//注册配置类 到BeanDefinitionMap里面
@@ -197,6 +206,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * @see #register(Class...)
 	 * @see #refresh()
 	 */
+	//扫描指定包路径及其子包下的注解类，为了使新添加的类被处理，必须手动调用refresh方法刷新容器
 	public void scan(String... basePackages) {
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
 		this.scanner.scan(basePackages);

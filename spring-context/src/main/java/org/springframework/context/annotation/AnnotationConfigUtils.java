@@ -263,8 +263,10 @@ public class AnnotationConfigUtils {
 		processCommonDefinitionAnnotations(abd, abd.getMetadata());
 	}
 
+	//处理Bean定义中的通用注解
 	static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd, AnnotatedTypeMetadata metadata) {
 		AnnotationAttributes lazy = attributesFor(metadata, Lazy.class);
+		//如果Bean定义中有@Lazy注解，则将该bean预实例化属性设置为@Lazy注解的值
 		if (lazy != null) {
 			abd.setLazyInit(lazy.getBoolean("value"));
 		} else if (abd.getMetadata() != metadata) {
@@ -273,7 +275,8 @@ public class AnnotationConfigUtils {
 				abd.setLazyInit(lazy.getBoolean("value"));
 			}
 		}
-
+		//如果Bean定义中有@Primary注解，则将该Bean设置锁依赖的Bean的名称
+		//容器将确保在实例化该Bean之前首先实例化所依赖的Bean
 		if (metadata.isAnnotated(Primary.class.getName())) {
 			abd.setPrimary(true);
 		}
@@ -294,15 +297,19 @@ public class AnnotationConfigUtils {
 			}
 		}
 	}
-
+	//根据注解Bean定义类中配置的作用域为其应用相应的代理策略  主要在AOP中使用
 	static BeanDefinitionHolder applyScopedProxyMode(
 			ScopeMetadata metadata, BeanDefinitionHolder definition, BeanDefinitionRegistry registry) {
-
+		//获取注解Bean定义类中@Scope注解的proxyType属性值
 		ScopedProxyMode scopedProxyMode = metadata.getScopedProxyMode();
+		//如果配置@Scope注解的proxyMode属性值为NO,则不应用代理模式
 		if (scopedProxyMode.equals(ScopedProxyMode.NO)) {
 			return definition;
 		}
+		//获取配置的@Scope注解的proxyMode属性值，如果为TARET_CLASS
+		//则返回true,如果为INTERFACES则返回false
 		boolean proxyTargetClass = scopedProxyMode.equals(ScopedProxyMode.TARGET_CLASS);
+		//为注册的Bean创建相应模式的代理对象
 		return ScopedProxyCreator.createScopedProxy(definition, registry, proxyTargetClass);
 	}
 

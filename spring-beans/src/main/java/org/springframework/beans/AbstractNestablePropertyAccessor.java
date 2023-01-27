@@ -279,6 +279,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 		}
 	}
 
+	//实现属性依赖注入功能
 	protected void setPropertyValue(PropertyTokenHolder tokens, PropertyValue pv) throws BeansException {
 		if (tokens.keys != null) {
 			processKeyedProperty(tokens, pv);
@@ -288,7 +289,9 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 	}
 
 	@SuppressWarnings("unchecked")
+	//实现属性依赖注入功能
 	private void processKeyedProperty(PropertyTokenHolder tokens, PropertyValue pv) {
+		//调用属性的gtter(readerMethod)方法，获取属性值
 		Object propValue = getPropertyHoldingValue(tokens);
 		PropertyHandler ph = getLocalPropertyHandler(tokens.actualName);
 		if (ph == null) {
@@ -297,7 +300,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 		}
 		Assert.state(tokens.keys != null, "No token keys");
 		String lastKey = tokens.keys[tokens.keys.length - 1];
-
+		//注入ayrray类型的属性值
 		if (propValue.getClass().isArray()) {
 			Class<?> requiredType = propValue.getClass().getComponentType();
 			int arrayIndex = Integer.parseInt(lastKey);
@@ -308,30 +311,38 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 				}
 				Object convertedValue = convertIfNecessary(tokens.canonicalName, oldValue, pv.getValue(),
 						requiredType, ph.nested(tokens.keys.length));
+				//获取集合类型的属性的长度
 				int length = Array.getLength(propValue);
 				if (arrayIndex >= length && arrayIndex < this.autoGrowCollectionLimit) {
 					Class<?> componentType = propValue.getClass().getComponentType();
 					Object newArray = Array.newInstance(componentType, arrayIndex + 1);
 					System.arraycopy(propValue, 0, newArray, 0, length);
 					setPropertyValue(tokens.actualName, newArray);
+					//调用属性的getter(readerMethod)方法，获取属性值
 					propValue = getPropertyValue(tokens.actualName);
 				}
+				//将属性值赋给数组中的元素
 				Array.set(propValue, arrayIndex, convertedValue);
 			} catch (IndexOutOfBoundsException ex) {
 				throw new InvalidPropertyException(getRootClass(), this.nestedPath + tokens.canonicalName,
 						"Invalid array index in property path '" + tokens.canonicalName + "'", ex);
 			}
+			//注入list类型的属性值
 		} else if (propValue instanceof List) {
+			//获取list集合类型
 			Class<?> requiredType = ph.getCollectionType(tokens.keys.length);
 			List<Object> list = (List<Object>) propValue;
+			//获取list集合的size
 			int index = Integer.parseInt(lastKey);
 			Object oldValue = null;
 			if (isExtractOldValueForEditor() && index < list.size()) {
 				oldValue = list.get(index);
 			}
+			//获取解析后的list的属性值
 			Object convertedValue = convertIfNecessary(tokens.canonicalName, oldValue, pv.getValue(),
 					requiredType, ph.nested(tokens.keys.length));
 			int size = list.size();
+			//如果list的长度大于属性值的长度，则将多余的元素赋值为null;
 			if (index >= size && index < this.autoGrowCollectionLimit) {
 				for (int i = size; i < index; i++) {
 					try {
@@ -346,19 +357,24 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 				list.add(convertedValue);
 			} else {
 				try {
+					//将值添加到list中
 					list.set(index, convertedValue);
 				} catch (IndexOutOfBoundsException ex) {
 					throw new InvalidPropertyException(getRootClass(), this.nestedPath + tokens.canonicalName,
 							"Invalid list index in property path '" + tokens.canonicalName + "'", ex);
 				}
 			}
+			//注入map的属性值
 		} else if (propValue instanceof Map) {
+			//获取map集合的kay类型
 			Class<?> mapKeyType = ph.getMapKeyType(tokens.keys.length);
+			//获取map集合的value类型
 			Class<?> mapValueType = ph.getMapValueType(tokens.keys.length);
 			Map<Object, Object> map = (Map<Object, Object>) propValue;
 			// IMPORTANT: Do not pass full property name in here - property editors
 			// must not kick in for map keys but rather only for map values.
 			TypeDescriptor typeDescriptor = TypeDescriptor.valueOf(mapKeyType);
+			//解析map类型属性的kay值
 			Object convertedMapKey = convertIfNecessary(null, null, lastKey, mapKeyType, typeDescriptor);
 			Object oldValue = null;
 			if (isExtractOldValueForEditor()) {
@@ -366,6 +382,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 			}
 			// Pass full property name and old value in here, since we want full
 			// conversion ability for map values.
+			//解析map类型的属性的value值
 			Object convertedMapValue = convertIfNecessary(tokens.canonicalName, oldValue, pv.getValue(),
 					mapValueType, ph.nested(tokens.keys.length));
 			map.put(convertedMapKey, convertedMapValue);
@@ -386,6 +403,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 
 		Object propValue;
 		try {
+			//获取属性值
 			propValue = getPropertyValue(getterTokens);
 		} catch (NotReadablePropertyException ex) {
 			throw new NotWritablePropertyException(getRootClass(), this.nestedPath + tokens.canonicalName,

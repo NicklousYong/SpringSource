@@ -488,6 +488,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			logger.debug("Creating instance of bean '" + beanName + "'");
 		}
 		//~~~这里为什么要新建一个对象，指向原有的同类型对象呢？？？
+		//判断需要创建的Bean是否可以实例化，即是否可以通过当前的类加载器加载
 		RootBeanDefinition mbdToUse = mbd; //目测这个mbd存储的是当前Bean的信息
 		//确保此时的 bean 已经被解析了
 		//判断需要创建的Bean是否需要实例化，即是否可以通过当前的类加载器加载
