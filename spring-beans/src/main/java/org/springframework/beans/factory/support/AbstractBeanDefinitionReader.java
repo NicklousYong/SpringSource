@@ -213,15 +213,17 @@ public abstract class AbstractBeanDefinitionReader implements EnvironmentCapable
 	 * @see #loadBeanDefinitions(org.springframework.core.io.Resource)
 	 * @see #loadBeanDefinitions(org.springframework.core.io.Resource[])
 	 */
-
+	//在AbstractXmlApplicationContext中并不需要接收这个返回值，但是这里的确返回了，是否多余？
 	public int loadBeanDefinitions(String location, @Nullable Set<Resource> actualResources) throws BeanDefinitionStoreException {
 		//获取在IOC容器初始化过程中设置的资源加载器
 		//Application继承了resourceLoader
+		//那么这里的资源加载器的实例属于哪个类 ？？？
 		ResourceLoader resourceLoader = getResourceLoader();
 		if (resourceLoader == null) {//这里啥时候不为空 ？？？
 			throw new BeanDefinitionStoreException(
 					"Cannot import bean definitions from location [" + location + "]: no ResourceLoader available");
 		}
+
 		if (resourceLoader instanceof ResourcePatternResolver) {
 			try {
 				//将指定位置的Bean配置信息解析为Spring IOC容器封装的资源
@@ -231,6 +233,7 @@ public abstract class AbstractBeanDefinitionReader implements EnvironmentCapable
 				//委派调用子类XmlBeanDefinitionReader的方法，实现加载功能
 				//读取文件内容
 				int loadCount = loadBeanDefinitions(resources);
+				//如果不为空，将当前集合加入Set中 那么问题来了， 什么时候不为空？ actualResources是个啥？
 				if (actualResources != null) {
 					for (Resource resource : resources) {
 						actualResources.add(resource);
@@ -261,6 +264,7 @@ public abstract class AbstractBeanDefinitionReader implements EnvironmentCapable
 		}
 	}
 	//重载方法，调用loadBeanDefinitions(String)
+	//xml配置方式下 首先调用该方法
 	@Override
 	public int loadBeanDefinitions(String... locations) throws BeanDefinitionStoreException {
 		Assert.notNull(locations, "Location array must not be null");

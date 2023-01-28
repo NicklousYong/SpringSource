@@ -192,7 +192,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	private final List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
 
-	/**
+	/**`
 	 * System time in milliseconds when this context started
 	 */
 	private long startupDate;
@@ -636,7 +636,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected void prepareRefresh() {
 		//获取当前时间
 		this.startupDate = System.currentTimeMillis();
+		//spring标记为未关闭
 		this.closed.set(false);
+		//spring当前激活状态
 		this.active.set(true);
 
 		if (logger.isInfoEnabled()) {

@@ -80,6 +80,7 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	 * @see #loadBeanDefinitions
 	 */
 	//实现父类抽象的载入Bean定义方法
+	//这里新建一个Bean定义读取器 然后init ，之后进入loadBeanDefinitions(beanDefinitionReader);方法
 	@Override
 	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws BeansException, IOException {
 		//建立一个新的Reader类来读取
@@ -128,6 +129,7 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	 */
 
 	//xml Bean读取器加载Bean配置资源
+	//在获得之前加载的Resource之后，调用reader.loadBeanDefinitions(configResources)方法加载Bean定义信息
 	protected void loadBeanDefinitions(XmlBeanDefinitionReader reader) throws BeansException, IOException {
 		//获取Bean配置资源定位
 		Resource[] configResources = getConfigResources();

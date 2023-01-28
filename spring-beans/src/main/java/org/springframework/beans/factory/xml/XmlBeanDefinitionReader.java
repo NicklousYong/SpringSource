@@ -323,13 +323,13 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @return the number of bean definitions found
 	 * @throws BeanDefinitionStoreException in case of loading or parsing errors
 	 */
-	//我认为这里的encodedResource就是prepareRefresh解析出来的单个resource对象
+	// 我认为这里的encodedResource就是prepareRefresh解析出来的单个resource对象
 	public int loadBeanDefinitions(EncodedResource encodedResource) throws BeanDefinitionStoreException {
 		Assert.notNull(encodedResource, "EncodedResource must not be null");
 		if (logger.isInfoEnabled()) {
 			logger.info("Loading XML bean definitions from " + encodedResource);
 		}
-		//resourcesCurrentlyBeingLoaded 中调用ThreadLocal进行处理
+		// resourcesCurrentlyBeingLoaded 中调用ThreadLocal进行处理
 		Set<EncodedResource> currentResources = this.resourcesCurrentlyBeingLoaded.get();
 		if (currentResources == null) {
 			currentResources = new HashSet<>(4);
@@ -341,7 +341,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			throw new BeanDefinitionStoreException(
 					"Detected cyclic loading of " + encodedResource + " - check your import definitions!");
 		}
-		//将资源文件转为InputStream的I/O流
+		//将资源文件转为InputStream的I/O流，在doLoadBeanDefinitions中把对象变为dom对象，再由registerBeanDefinitions方法进行Bean定义的注册
 		try {
 			InputStream inputStream = encodedResource.getResource().getInputStream();
 			try {//将XMl读取成输入流
@@ -408,7 +408,8 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	protected int doLoadBeanDefinitions(InputSource inputSource, Resource resource)
 			throws BeanDefinitionStoreException {
-		try {//输入流变为Dom对象
+		try {
+			//输入流变为Dom对象
 			//获得dom对象
 			Document doc = doLoadDocument(inputSource, resource);
 			//按照Spring的Bean语义将Bean配置信息解析并转换为容器内部的数据结构

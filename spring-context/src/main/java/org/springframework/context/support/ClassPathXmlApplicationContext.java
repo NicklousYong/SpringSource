@@ -148,17 +148,19 @@
 		 // 这个方法相当重要
 		 // 调用父类，一直调用到AbstractApplicationContext方法，并调用到
 		 // 父类的org.springframework.context.support.AbstractApplicationContext.getResourcePatternResolver方法
-		 // 会创建一个PathMatchingResourcePatternResolver;
-		 super(parent);  //初始化父类 ，获得xml路径资源解析器
-		 // 通过环境变量解析 xml路径，这里解析为多个数组，并存放于configLocations属性中
+		 // 会创建一个 PathMatchingResourcePatternResolver;
+		 //初始化父类 ，获得xml路径资源解析器 ResourcePatternResolver
+		 super(parent);
+		 // 通过环境变量解析 xml路径，这里解析为多个String,合并为一个数组，并存放于configLocations属性中
 		 setConfigLocations(configLocations);
 		 if (refresh) {
 		 	 //initPropertySources();   是做什么的需要注意一下
 			 //getEnvironment().validateRequiredProperties();   是做什么的需要注意一下
-			 refresh();   // 这个方法时spring是最终要的一个方法，甚至体系整个ioc的声明周期
+			 // 这个方法时spring是最终要的一个方法，甚至体系整个ioc的声明周期
+			 //https://blog.csdn.net/spring_live_in/article/details/101057926
+			 refresh();
 		 }
 	 }
-
 
 	 /**
 	  * Create a new ClassPathXmlApplicationContext, loading the definitions

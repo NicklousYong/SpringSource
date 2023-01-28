@@ -82,6 +82,7 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 			this.configLocations = new String[locations.length];
 			for (int i = 0; i < locations.length; i++) {
 				//resolvePath为同一个类中将字符串解析为路径的方法
+				//resolvePath负责对配置文件进行解析 https://www.cnblogs.com/bzfsdr/p/12913207.html
 				this.configLocations[i] = resolvePath(locations[i]).trim();
 			}
 		} else {
